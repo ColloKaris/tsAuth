@@ -26,6 +26,14 @@ app.set('views', path.join(__dirname, '/views'))
 app.use(express.urlencoded({extended: true})); // parse request body
 app.use(session({secret:'notagoodsecret', resave: false, saveUninitialized: false}))
 
+// Authentication middleware.
+const requireLogin = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.session.user_id) {
+    return res.redirect('/login')
+  }
+  next();
+}
+
 // Routing logic.
 app.get('/', (req: Request, res: Response) => {
   res.send('THIS IS THE HOME PAGE')
@@ -85,12 +93,12 @@ app.post('/logout', (req: Request, res: Response) => {
   
 })
 
-app.get('/secret', (req: Request, res: Response) => {
-  if (!req.session.user_id) {
-    return res.redirect('/login') // return since we are not using if...else
-  }
+app.get('/secret', requireLogin, (req: Request, res: Response) => {
   res.render('pages/secret');
-  //res.send("THIS IS SECRET! YOU CANNOT SEE ME UNLESS YOU ARE LOGGED IN")
+});
+
+app.get('/topsecret', requireLogin, (req: Request, res: Response, next: NextFunction) => {
+  res.send("TOP SECRET PAGE");
 })
 
 // End of Routing logic.
