@@ -1,0 +1,31 @@
+{
+  "name": "authdemo",
+  "version": "1.0.0",
+  "description": "Working with authentication in express using bcrypt",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "copy-views": "copyfiles -u 1 \"src/views/**/*\" dist/",
+    "start:build": "npm run build && npm run copy-views && tsc -w",
+    "start:run": "nodemon dist/index.js",
+    "start": "concurrently \"npm run start:build\" \"npm run start:run\""
+  },
+  "author": "Collins Kariuki",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "mongodb": "^6.8.0"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/ejs": "^3.1.5",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.1.0",
+    "copyfiles": "^2.4.1"
+  }
+}
