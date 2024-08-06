@@ -35,6 +35,7 @@ app.get('/register', (req: Request, res: Response) => {
   res.render('pages/register')
 })
 
+// Register new user
 app.post('/register', async (req: Request, res: Response) => {
   const user = req.body;
   const hash = await bcrypt.hash(req.body.password, 12);
@@ -46,6 +47,22 @@ app.post('/register', async (req: Request, res: Response) => {
     res.redirect('/')
   } else {
     console.log("Failed to create a new user");
+  }
+})
+
+// Login a registered user
+app.get('/login', (req: Request, res: Response) => {
+  res.render('pages/login')
+}),
+
+app.post('/login', async (req: Request, res: Response) => {
+  const { username, password } = req.body;
+  const user = await collections.users?.findOne({username: username});
+  if(user) {
+    const validPassword = await bcrypt.compare(password, user.password);
+    validPassword ? res.send("YAY WELCOME") : res.send("INCORRECT USERNAME OR PASSWORD");
+  } else {
+    res.send("INCORRECT USERNAME OR PASSWORD")
   }
 })
 
