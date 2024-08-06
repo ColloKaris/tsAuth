@@ -2,8 +2,9 @@ import express, { Request, Response, NextFunction} from 'express';
 import { fileURLToPath } from 'url';
 import * as dotenv from 'dotenv';
 import path from 'path'
-import { connectToDatabase } from './models/database.js';
-import ejs from 'ejs'
+import { connectToDatabase, collections } from './models/database.js';
+import bcrypt from 'bcrypt';
+
 
 dotenv.config();
 const { ATLAS_URI } = process.env;
@@ -25,12 +26,27 @@ app.set('views', path.join(__dirname, '/views'))
 app.use(express.urlencoded({extended: true})); // parse request body
 
 // Routing logic.
+app.get('/', (req: Request, res: Response) => {
+  res.send('THIS IS THE HOME PAGE')
+})
+
+
 app.get('/register', (req: Request, res: Response) => {
   res.render('pages/register')
 })
 
 app.post('/register', async (req: Request, res: Response) => {
-  res.send(req.body)
+  const user = req.body;
+  const hash = await bcrypt.hash(req.body.password, 12);
+  user.password = hash;
+
+  const result = await collections.users?.insertOne(user);
+  if(result?.acknowledged) {
+    console.log("Successfully created a new user");
+    res.redirect('/')
+  } else {
+    console.log("Failed to create a new user");
+  }
 })
 
 app.get('/secret', (req: Request, res: Response) => {
@@ -47,5 +63,3 @@ connectToDatabase(ATLAS_URI)
     })
   })
   .catch((error) => console.log(error));
-
-
