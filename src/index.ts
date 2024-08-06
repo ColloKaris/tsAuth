@@ -53,8 +53,8 @@ app.post('/register', async (req: Request, res: Response) => {
 
 // Login a registered user
 app.get('/login', (req: Request, res: Response) => {
-  res.render('pages/login')
-}),
+  res.render('pages/login');
+});
 
 app.post('/login', async (req: Request, res: Response) => {
   const { username, password } = req.body;
@@ -72,12 +72,24 @@ app.post('/login', async (req: Request, res: Response) => {
   }
 })
 
+// logout
+app.post('/logout', (req: Request, res: Response) => {
+  req.session.destroy((err: any) => {
+    if (err) {
+      console.log("Failed to destroy the session during logout", err);
+      res.status(500).send('Logout failed');
+    } else {
+      res.redirect('/login')
+    }
+  }) 
+  
+})
+
 app.get('/secret', (req: Request, res: Response) => {
   if (!req.session.user_id) {
-    res.redirect('/login')
-  } else {
-    res.send("THIS IS SECRET! YOU CANNOT SEE ME UNLESS YOU ARE LOGGED IN")
+    return res.redirect('/login') // return since we are not using if...else
   }
+  res.render('pages/secret');
   //res.send("THIS IS SECRET! YOU CANNOT SEE ME UNLESS YOU ARE LOGGED IN")
 })
 
