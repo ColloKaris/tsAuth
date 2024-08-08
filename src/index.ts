@@ -5,6 +5,8 @@ import path from 'path'
 import { connectToDatabase, collections } from './models/database.js';
 import bcrypt from 'bcrypt';
 import session from 'express-session'
+import passport from 'passport';
+import { localStrategy } from './strategies/localStrategy.js';
 
 dotenv.config();
 const { ATLAS_URI } = process.env;
@@ -26,9 +28,14 @@ app.set('views', path.join(__dirname, '/views'))
 app.use(express.urlencoded({extended: true})); // parse request body
 app.use(session({secret:'notagoodsecret', resave: false, saveUninitialized: false}))
 
+// Authentication using passport.
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(localStrategy);
+
 // Authentication middleware.
 const requireLogin = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.session.user_id) {
+  if (!req.session.passport?.user) {
     return res.redirect('/login')
   }
   next();
@@ -52,7 +59,7 @@ app.post('/register', async (req: Request, res: Response) => {
   const result = await collections.users?.insertOne(user);
   if(result?.acknowledged) {
     console.log("Successfully created a new user");
-    req.session.user_id = user._id;
+    req.session.passport = {user: user._id};
     res.redirect('/secret')
   } else {
     console.log("Failed to create a new user");
@@ -64,20 +71,24 @@ app.get('/login', (req: Request, res: Response) => {
   res.render('pages/login');
 });
 
-app.post('/login', async (req: Request, res: Response) => {
-  const { username, password } = req.body;
-  const user = await collections.users?.findOne({username: username});
-  if(user) {
-    const validPassword = await bcrypt.compare(password, user.password);
-    if(validPassword) {
-      req.session.user_id = user._id; // use this because often we want to lookup the use who is logged in
-      res.redirect('/secret')
-    } else {
-      res.send("INCORRECT USERNAME OR PASSWORD");
-    }
-  } else {
-    res.send("INCORRECT USERNAME OR PASSWORD")
-  }
+app.post('/login', passport.authenticate('local'), async (req: Request, res: Response) => {
+  res.redirect('/secret');
+  //console.log(req.session.passport.user);
+  //console.log(req.session)
+  
+  // const { username, password } = req.body;
+  // const user = await collections.users?.findOne({username: username});
+  // if(user) {
+  //   const validPassword = await bcrypt.compare(password, user.password);
+  //   if(validPassword) {
+  //     req.session.user_id = user._id; // use this because often we want to lookup the use who is logged in
+  //     res.redirect('/secret')
+  //   } else {
+  //     res.send("INCORRECT USERNAME OR PASSWORD");
+  //   }
+  // } else {
+  //   res.send("INCORRECT USERNAME OR PASSWORD")
+  // }
 })
 
 // logout

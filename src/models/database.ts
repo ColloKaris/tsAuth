@@ -22,7 +22,7 @@ export async function connectToDatabase(uri: string) {
 
 // Schema validation for the User collection.
 async function applySchemaValidation(db: mongodb.Db) {
-  const userSchema = {
+  const User = {
     $jsonSchema: {
       bsonType: "object",
       required: ['username', 'password'],
@@ -41,10 +41,10 @@ async function applySchemaValidation(db: mongodb.Db) {
   }
 
   // Try modify the User collection or explicitly create it if it doesn't exist
-  await db.command({collMod: 'users', validator: userSchema})
+  await db.command({collMod: 'users', validator: User})
     .catch(async (error: mongodb.MongoServerError) => {
       if (error.codename === 'NamespaceNotFound') {
-        await db.createCollection('users', {validator: userSchema})
+        await db.createCollection('users', {validator: User})
       }
     })
 }
